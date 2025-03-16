@@ -4,6 +4,7 @@ from discord import app_commands
 from discord.ui import View, Button, Modal, TextInput
 import asyncio
 
+# Ticket Modal for user input
 class TicketModal(Modal):
     def __init__(self):
         super().__init__(title="Create Ticket")
@@ -14,27 +15,37 @@ class TicketModal(Modal):
         subject = self.children[0].value
         description = self.children[1].value
 
-        # Create ticket channel
+        # Get guild and category
         guild = interaction.guild
         category = discord.utils.get(guild.categories, name="Tickets")
 
         if not category:
             category = await guild.create_category("Tickets")
 
+        # Create ticket channel
         channel_name = f"ticket-{interaction.user.name.lower()}"
         channel = await category.create_text_channel(channel_name)
 
-        # Set permissions
+        # Set permissions (Only user and staff can see)
         await channel.set_permissions(interaction.user, read_messages=True, send_messages=True)
         await channel.set_permissions(guild.default_role, read_messages=False)
 
-        # Send initial message
-        embed = discord.Embed(title=f"Ticket: {subject}", description=description, color=discord.Color.green())
-        embed.set_footer(text=f"Created by {interaction.user.name}")
-        await channel.send(embed=embed)
+        # Set channel topic (description)
+        await channel.edit(topic=f"Ticket created by {interaction.user.name} | Subject: {subject}")
 
+        # Embed with an image
+        embed = discord.Embed(
+            title=f"Ticket: {subject}",
+            description=description,
+            color=discord.Color.green()
+        )
+        embed.set_footer(text=f"Created by {interaction.user.name}")
+        embed.set_thumbnail(url="https://i.imgur.com/AfFp7pu.png")  # Change this to your desired image
+
+        await channel.send(embed=embed)
         await interaction.response.send_message(f"Ticket created in {channel.mention}", ephemeral=True)
 
+# Ticket View for creating tickets
 class TicketView(View):
     def __init__(self):
         super().__init__(timeout=None)
@@ -44,6 +55,7 @@ class TicketView(View):
         modal = TicketModal()
         await interaction.response.send_modal(modal)
 
+# Ticket Commands
 class Tickets(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -52,10 +64,11 @@ class Tickets(commands.Cog):
     @app_commands.checks.has_permissions(administrator=True)
     async def ticket_panel(self, interaction: discord.Interaction):
         embed = discord.Embed(
-            title="Support Tickets",
-            description="Click the button below to create a support ticket",
+            title="🎫 Support Tickets",
+            description="Click the button below to create a support ticket.",
             color=discord.Color.blue()
         )
+        embed.set_thumbnail(url="https://i.imgur.com/AfFp7pu.png")  # Change this image if needed
 
         view = TicketView()
         await interaction.response.send_message(embed=embed, view=view)
@@ -67,7 +80,7 @@ class Tickets(commands.Cog):
             return
 
         await interaction.response.send_message("Closing ticket in 5 seconds...")
-        await asyncio.sleep(5)  # Use asyncio.sleep instead of delay parameter
+        await asyncio.sleep(5)
         await interaction.channel.delete()
 
 async def setup(bot):
