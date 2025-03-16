@@ -1,5 +1,6 @@
 import os
 import discord
+import keep_alive
 from discord.ext import commands
 from discord import app_commands
 import logging
