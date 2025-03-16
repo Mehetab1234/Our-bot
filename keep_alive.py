@@ -6,12 +6,12 @@ app = Flask('')
 
 @app.route('/')
 def home():
-    return "Discord Bot is alive!"
+    return "Bot is alive!"
 
 def run():
     app.run(host='0.0.0.0', port=8080)
 
 def keep_alive():
-    server = Thread(target=run)
-    server.daemon = True  # Set daemon to True so it stops when main program stops
-    server.start()
+    t = Thread(target=run)
+    t.daemon = True
+    t.start()
