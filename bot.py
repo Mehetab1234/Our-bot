@@ -5,7 +5,6 @@ from discord import app_commands
 import logging
 from utils.logger import setup_logger
 from utils.config import load_config
-from keep_alive import keep_alive
 
 # Setup logging
 logger = setup_logger()
@@ -78,6 +77,13 @@ class DiscordBot(commands.Bot):
             await ctx.send(f"An error occurred: {str(error)}")
 
 def main():
+    # Start keep_alive server
+    try:
+        from keep_alive import keep_alive
+        keep_alive()
+    except Exception as e:
+        logger.error(f"Failed to start keep_alive: {e}")
+    
     # Get token from environment variable
     token = os.getenv('DISCORD_TOKEN')
     if not token:
