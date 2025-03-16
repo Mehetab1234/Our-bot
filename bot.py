@@ -5,7 +5,6 @@ from discord import app_commands
 import logging
 from utils.logger import setup_logger
 from utils.config import load_config
-from keep_alive import keep_alive
 
 # Setup logging
 logger = setup_logger()
@@ -26,10 +25,10 @@ class DiscordBot(commands.Bot):
     async def setup_hook(self):
         # Load all cogs
         for filename in os.listdir('./cogs'):
-            if filename.endswith('.py'):
+            if filename.endswith('.py') and filename != '__init__.py':
                 try:
                     await self.load_extension(f'cogs.{filename[:-3]}')
-                    logger.info(f'Loaded extension: {filename}')
+                    logger.info(f"Loaded extension: {filename}")
                 except Exception as e:
                     logger.error(f'Failed to load extension {filename}: {str(e)}')
 
@@ -78,7 +77,6 @@ class DiscordBot(commands.Bot):
             await ctx.send(f"An error occurred: {str(error)}")
 
 def main():
-    keep_alive()  # Start the web server
     # Get token from environment variable
     token = os.getenv('DISCORD_TOKEN')
     if not token:
