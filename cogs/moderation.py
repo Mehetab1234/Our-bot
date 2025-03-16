@@ -22,5 +22,22 @@ class Moderation(commands.Cog):
         except Exception as e:
             await interaction.response.send_message(f"Error clearing messages: {str(e)}", ephemeral=True)
 
+    @app_commands.command(name='createpost', description='Create a post (Admin only)')
+    @app_commands.describe(title='Post title', content='Post content')
+    @app_commands.checks.has_permissions(administrator=True)
+    async def create_post(self, interaction: discord.Interaction, title: str, content: str):
+        try:
+            embed = discord.Embed(
+                title=title,
+                description=content,
+                color=discord.Color.blue(),
+                timestamp=datetime.datetime.now()
+            )
+            embed.set_footer(text=f"Posted by {interaction.user.name}")
+            await interaction.channel.send(embed=embed)
+            await interaction.response.send_message("Post created successfully!", ephemeral=True)
+        except Exception as e:
+            await interaction.response.send_message(f"Error creating post: {str(e)}", ephemeral=True)
+
 async def setup(bot):
     await bot.add_cog(Moderation(bot))
