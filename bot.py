@@ -25,10 +25,10 @@ class DiscordBot(commands.Bot):
     async def setup_hook(self):
         # Load all cogs
         for filename in os.listdir('./cogs'):
-            if filename.endswith('.py') and filename != '__init__.py':
+            if filename.endswith('.py'):
                 try:
                     await self.load_extension(f'cogs.{filename[:-3]}')
-                    logger.info(f"Loaded extension: {filename}")
+                    logger.info(f'Loaded extension: {filename}')
                 except Exception as e:
                     logger.error(f'Failed to load extension {filename}: {str(e)}')
 
@@ -77,6 +77,9 @@ class DiscordBot(commands.Bot):
             await ctx.send(f"An error occurred: {str(error)}")
 
 def main():
+    # Start keep_alive server
+    keep_alive()
+    
     # Get token from environment variable
     token = os.getenv('DISCORD_TOKEN')
     if not token:
