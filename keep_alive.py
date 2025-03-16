@@ -12,5 +12,6 @@ def run():
     app.run(host='0.0.0.0', port=8080)
 
 def keep_alive():
-    t = Thread(target=run)
-    t.start()
+    server = Thread(target=run)
+    server.daemon = True  # Set daemon to True so it stops when main program stops
+    server.start()
