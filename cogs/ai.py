@@ -12,10 +12,12 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 # Set OpenAI API key
 openai.api_key = OPENAI_API_KEY
 
+# Dictionary to store AI channels per server
+ai_channels = {}
+
 class AI(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.ai_channels = {}  # Store AI channels per server
 
     def get_ai_response(self, prompt: str) -> str:
         """Generates a response from OpenAI based on user input."""
@@ -31,14 +33,15 @@ class AI(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        if message.author.bot:
-            return  # Ignore bot messages
+        if message.author.bot or not message.guild:
+            return  # Ignore bot messages & DMs
 
-        guild_id = message.guild.id if message.guild else None
+        guild_id = message.guild.id
+        ai_channel_id = ai_channels.get(guild_id)  # Get AI channel for this server
 
-        # Check if an AI channel is set for this server
-        if guild_id in self.ai_channels and self.ai_channels[guild_id] != message.channel.id:
-            return  # Ignore messages outside the AI channel
+        # Only respond in the AI channel if set
+        if ai_channel_id and message.channel.id != ai_channel_id:
+            return
 
         response = self.get_ai_response(message.content)
         await message.channel.send(response)
@@ -48,15 +51,17 @@ class AI(commands.Cog):
         response = self.get_ai_response(question)
         await interaction.response.send_message(response)
 
-    @app_commands.command(name="ai-channel", description="Set the AI response channel (optional)")
+    @app_commands.command(name="ai-channel", description="Set the AI response channel (Admins Only)")
+    @commands.has_permissions(administrator=True)  # Only allow admins
     async def set_ai_channel(self, interaction: discord.Interaction, channel: discord.TextChannel = None):
         guild_id = interaction.guild.id
+
         if channel:
-            self.ai_channels[guild_id] = channel.id
-            await interaction.response.send_message(f"✅ AI responses will now be in {channel.mention}", ephemeral=True)
+            ai_channels[guild_id] = channel.id
+            await interaction.response.send_message(f"✅ AI will now respond only in {channel.mention}", ephemeral=True)
         else:
-            self.ai_channels.pop(guild_id, None)  # Remove restriction
-            await interaction.response.send_message("✅ AI responses will now be in **all channels**", ephemeral=True)
+            ai_channels.pop(guild_id, None)  # Remove restriction
+            await interaction.response.send_message("✅ AI will now respond in **all channels**", ephemeral=True)
 
 async def setup(bot):
     await bot.add_cog(AI(bot))
